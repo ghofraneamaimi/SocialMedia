@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 public class Accueil {
     public static void main(String[] args) {
-   // BDAutoGeneration bd = new BDAutoGeneration();
+    BDAutoGeneration bd = new BDAutoGeneration();
         Scanner input = new Scanner(System.in);
         int choice;
         int ch;

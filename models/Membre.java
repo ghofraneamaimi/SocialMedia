@@ -1,16 +1,15 @@
 package models;
-import com.sun.org.apache.xalan.internal.xsltc.dom.StepIterator;
 import database.Connexion;
 import org.hibernate.query.Query;
 import javax.persistence.*;
 import javax.transaction.Transactional;
-
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Entity
 public class Membre   {
-    Date date = new Date();
+    Date d= new Date();
+
     @OneToMany(mappedBy="membre",fetch = FetchType.EAGER,cascade = CascadeType.ALL )
     private List<Page> pages = new ArrayList<Page>();
 
@@ -55,8 +54,6 @@ public class Membre   {
     String password;
     @Column(name = "age", unique = false, nullable = false, length = 100)
     int age;
-  /*  @Column(name = "amis", unique = false, nullable = false)
-    */
 
     public Membre(String nom, String prenom, String mail, String password, int age) {
         this.nom = nom;
@@ -67,8 +64,6 @@ public class Membre   {
         this.InvitationEnvoye = new ArrayList<MemberShip>();
         this.InvitationRecu = new ArrayList<MemberShip>();
     }
-
-    //public Membre(Serializable ghofrane, String amaimi, String s, String s1, int i) {}
 
     public Long getId() {
         return id;
@@ -125,6 +120,7 @@ public class Membre   {
     public void setPages(List<Page> pages) {
         this.pages = pages;
     }
+
     public List<Aimes> getPagesAimees() {
         return pagesAimees;
     }
@@ -134,11 +130,11 @@ public class Membre   {
     }
 
     public Date getDate() {
-        return date;
+        return d;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setDate(Date d) {
+        this.d = d;
     }
 
     public List<Membre> getAmis() {
@@ -153,21 +149,12 @@ public class Membre   {
         InvitationEnvoye = invitationEnvoye;
     }
 
-
     public Membre() { }
-
-
-    /*public List<MemberShip> getAmis() {
-        return amis;
-    }
-
-    public void setAmis(List<MemberShip> amis) {
-        this.amis = amis;
-    }*/
 
     public List<MemberShip> getInvitationEnvoye() {
         return InvitationEnvoye;
     }
+
     public List<MemberShip> getInvitationRecu() {
         return InvitationRecu;
     }
@@ -176,24 +163,14 @@ public class Membre   {
         InvitationRecu = invitationRecu;
     }
 
-    public List<MemberShip> getInvitationEnvoyé() {
-        return InvitationEnvoye;
-    }
-
-    public void setInvitationEnvoyé(List<MemberShip> invitationEnvoyé) {
-        InvitationEnvoye = invitationEnvoyé;
-    }
-
-
-
     @Transactional
     public void listeInvitationRecu()
     {
-
         for (int i = 0; i < this.getInvitationRecu().size(); i++) {
             System.out.println(this.getInvitationRecu().get(i));
         }
     }
+
     @Transactional
     public void listeInvitationEnvoye()
     {
@@ -210,18 +187,18 @@ public class Membre   {
             try {
                 Query query = cx.getSession().createQuery("from Membre where nom = :nom");
                 query.setParameter("nom", nom);
-                Membre envoyé_a = (Membre) query.getSingleResult();
-                System.out.println(envoyé_a);
-                MemberShip m = new MemberShip(this.getId(),envoyé_a.getId());
+                Membre envoye_a = (Membre) query.getSingleResult();
+                System.out.println(envoye_a);
+                MemberShip m = new MemberShip(this.getId(),envoye_a.getId());
                 cx.save(m);
                 cx.save(this);
-                envoyé_a.InvitationRecu.add(m);
+                envoye_a.InvitationRecu.add(m);
                 this.InvitationEnvoye.add(m);
-                cx.getSession().update(envoyé_a);
-                System.out.println("liste des invitations recus pour " + envoyé_a.getNom());
-                envoyé_a.listeInvitationRecu();
+                cx.getSession().update(envoye_a);
+                System.out.println("liste des invitations recus pour " + envoye_a.getNom());
+                envoye_a.listeInvitationRecu();
                 System.out.println("liste des invitations envoyées par " + this.getNom());
-                System.out.println(this.getInvitationEnvoyé());
+                System.out.println(this.getInvitationEnvoye());
                 exist = true;
             }
            catch (NoResultException e)
@@ -232,13 +209,14 @@ public class Membre   {
         }
         while(exist==false);
     }
-  @Transactional
-   public  void accepterInvitation(Membre m )
-   {
-      this.getAmis().add(m);
-       System.out.println("liste d'amis \n");
-       this.getAmis();
-   }
+
+    @Transactional
+       public  void accepterInvitation(Membre m )
+       {
+          this.getAmis().add(m);
+           System.out.println("liste d'amis \n");
+           this.getAmis();
+       }
 
     @Transactional
     public  void listePage()
@@ -255,7 +233,7 @@ public class Membre   {
         Genre gr = Genre.valueOf(genre);
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         p.setMembre(this);
-        p.setDate(formatter.format(date));
+        p.setDate(formatter.format(d));
         p.setNamePage(nom);
         p.setGenrePage(gr);
         pages.add(p);
@@ -265,7 +243,7 @@ public class Membre   {
     }
 
     @Transactional
-    void listePagesAimées()
+    void listePagesAimees()
     {
         for (int i = 0; i < this.getPagesAimees().size(); i++) {
             System.out.println(getPagesAimees().get(i));
@@ -283,7 +261,6 @@ public class Membre   {
                 System.out.println(p);
                 Aimes m = new Aimes(this.getId(), p.getId());
                 cx.save(m);
-                //cx.save(this);
                 cx.getSession().update(p);
                 this.getPagesAimees().add(m);
 
