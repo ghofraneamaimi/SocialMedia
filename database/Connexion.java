@@ -1,7 +1,9 @@
 package database;
 
+import models.Aimes;
 import models.MemberShip;
 import models.Membre;
+import models.Page;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -22,26 +24,30 @@ public class Connexion {
         prop.setProperty("hibernate.connection.password", "123456");
         prop.setProperty("hibernate.connection.driver_class", "org.postgresql.Driver");
         prop.setProperty("show_sql","false");
+        prop.setProperty("enable_lazy_load_no_trans","true");
         Configuration configuration = new Configuration();
         configuration.addAnnotatedClass(Membre .class);
         configuration.addAnnotatedClass(MemberShip.class);
+        configuration.addAnnotatedClass(Page.class);
+        configuration.addAnnotatedClass(Aimes.class);
         configuration.addProperties(prop);
         sessionFactory = configuration.buildSessionFactory();
         session = sessionFactory.openSession();
     }
 
     public Session getSession() {
-
         return session;
     }
-
-
 
     public void save(Object object)
     {
         tx = getSession().beginTransaction();
         getSession().save(object);
         tx.commit();
+    }
+
+    public Object find(Class c,Object object){
+        return (Object) getSession().find(c,object);
     }
 
     public void closeConnexion(){

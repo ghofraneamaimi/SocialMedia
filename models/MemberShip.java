@@ -1,27 +1,24 @@
 package models;
+import database.Connexion;
 import javax.persistence.*;
-import java.lang.reflect.Member;
-import java.util.Enumeration;
-
 
 @Entity
 public class MemberShip {
     @EmbeddedId
     private MemberShipID membershipId;
 
-    @Column(name = "statuInvitation")
-    StatusInvitation statuInvitation;
+    @ManyToOne
+   private  Membre sourceMembre;
+    @ManyToOne
+   private Membre targetMembre;
 
 
     @Override
     public String toString() {
         return "MemberShip{" +
                 "membershipId=" + membershipId +
-                ", statuInvitation=" + statuInvitation +
                 '}';
     }
-
-
 
     public MemberShipID getMembershipId() {
         return membershipId;
@@ -31,17 +28,35 @@ public class MemberShip {
         this.membershipId = membershipId;
     }
 
-    public StatusInvitation getStatuInvitation() {
-        return statuInvitation;
-    }
-
-    public void setStatuInvitation(StatusInvitation statuInvitation) {
-        this.statuInvitation = statuInvitation;
-    }
-
     public MemberShip(Long sourceMembre, Long targetMembre) {
         this.membershipId = new MemberShipID(sourceMembre,targetMembre);
+        Connexion cx = new Connexion();
+        try{
+               this.sourceMembre= (Membre)cx.find(Membre.class ,sourceMembre);
+               this.targetMembre= (Membre)cx.find(Membre.class, targetMembre);
+               cx.getSession().update(this);
+            }  catch (NoResultException e)
+            {
+                System.out.println("error");
+            }
+
+        cx.closeConnexion();
+
     }
 
+    public Membre getSourceMembre() {
+        return sourceMembre;
+    }
 
+    public void setSourceMembre(Membre sourceMembre) {
+        this.sourceMembre = sourceMembre;
+    }
+
+    public Membre getTargetMembre() {
+        return targetMembre;
+    }
+
+    public void setTargetMembre(Membre targetMembre) {
+        this.targetMembre = targetMembre;
+    }
 }

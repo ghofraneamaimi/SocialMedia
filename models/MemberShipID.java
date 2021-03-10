@@ -8,7 +8,7 @@ import java.util.Objects;
 public class MemberShipID implements Serializable {
 
 
-    //l'utilisateur qui a demandé l'amitié
+//l'utilisateur qui a demandé l'amitié
 
     private Long sourceMembre;
 
@@ -45,5 +45,13 @@ public class MemberShipID implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(sourceMembre, targetMembre);
+    }
+
+    @Override
+    public String toString() {
+        return "MemberShipID{" +
+                "sourceMembre=" + sourceMembre +
+                ", targetMembre=" + targetMembre +
+                '}';
     }
 }

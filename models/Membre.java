@@ -1,27 +1,33 @@
 package models;
+import com.sun.org.apache.xalan.internal.xsltc.dom.StepIterator;
 import database.Connexion;
-import org.hibernate.Hibernate;
-import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import javax.persistence.*;
 import javax.transaction.Transactional;
+
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Entity
 public class Membre   {
+    Date date = new Date();
+    @OneToMany(mappedBy="membre",fetch = FetchType.EAGER,cascade = CascadeType.ALL )
+    private List<Page> pages = new ArrayList<Page>();
 
-   /* @OneToMany
-    public List<MemberShip> amis = new ArrayList<>();*/
+    @OneToMany(mappedBy = "page",fetch = FetchType.LAZY)
+    private List<Aimes> pagesAimees = new ArrayList<>();
+
+    @OneToMany
+    public List<Membre> amis = new ArrayList<>();
 
     //la liste des amitiés demandées à cet utilisateur
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name="invitationenvoye")
-    public List<MemberShip> InvitationRecu ;
+    @OneToMany(mappedBy = "sourceMembre",fetch = FetchType.LAZY)
+    public List<MemberShip> InvitationEnvoye = new ArrayList<>() ;
 
     //la liste des amitiés demandées par cet utilisateur
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name="invitationrecu")
-    public List<MemberShip> InvitationEnvoyé ;
+    @OneToMany(mappedBy = "targetMembre",fetch = FetchType.LAZY)
+    public List<MemberShip> InvitationRecu  = new ArrayList<>();
+
 
     @Override
     public String toString() {
@@ -49,6 +55,8 @@ public class Membre   {
     String password;
     @Column(name = "age", unique = false, nullable = false, length = 100)
     int age;
+  /*  @Column(name = "amis", unique = false, nullable = false)
+    */
 
     public Membre(String nom, String prenom, String mail, String password, int age) {
         this.nom = nom;
@@ -56,7 +64,7 @@ public class Membre   {
         this.mail = mail;
         this.password = password;
         this.age = age;
-        this.InvitationEnvoyé = new ArrayList<MemberShip>();
+        this.InvitationEnvoye = new ArrayList<MemberShip>();
         this.InvitationRecu = new ArrayList<MemberShip>();
     }
 
@@ -110,7 +118,44 @@ public class Membre   {
         this.age = age;
     }
 
+    public List<Page> getPages() {
+        return pages;
+    }
+
+    public void setPages(List<Page> pages) {
+        this.pages = pages;
+    }
+    public List<Aimes> getPagesAimees() {
+        return pagesAimees;
+    }
+
+    public void setPagesAimees(List<Aimes> pagesAimees) {
+        this.pagesAimees = pagesAimees;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public List<Membre> getAmis() {
+        return amis;
+    }
+
+    public void setAmis(List<Membre> amis) {
+        this.amis = amis;
+    }
+
+    public void setInvitationEnvoye(List<MemberShip> invitationEnvoye) {
+        InvitationEnvoye = invitationEnvoye;
+    }
+
+
     public Membre() { }
+
 
     /*public List<MemberShip> getAmis() {
         return amis;
@@ -120,6 +165,9 @@ public class Membre   {
         this.amis = amis;
     }*/
 
+    public List<MemberShip> getInvitationEnvoye() {
+        return InvitationEnvoye;
+    }
     public List<MemberShip> getInvitationRecu() {
         return InvitationRecu;
     }
@@ -129,27 +177,32 @@ public class Membre   {
     }
 
     public List<MemberShip> getInvitationEnvoyé() {
-        return InvitationEnvoyé;
+        return InvitationEnvoye;
     }
 
     public void setInvitationEnvoyé(List<MemberShip> invitationEnvoyé) {
-        InvitationEnvoyé = invitationEnvoyé;
+        InvitationEnvoye = invitationEnvoyé;
     }
 
-    void listeInvitationRecu()
+
+
+    @Transactional
+    public void listeInvitationRecu()
     {
 
-        for (int i = 0; i < this.InvitationRecu.size(); i++) {
-            System.out.println(this.InvitationRecu.get(i));
+        for (int i = 0; i < this.getInvitationRecu().size(); i++) {
+            System.out.println(this.getInvitationRecu().get(i));
         }
     }
+    @Transactional
     public void listeInvitationEnvoye()
     {
-        for (int i = 0; i < this.InvitationEnvoyé.size(); i++) {
-            System.out.println(this.InvitationEnvoyé.get(i));
-        }
+       for (int i = 0; i < this.InvitationEnvoye.size(); i++) {
+           System.out.println(InvitationEnvoye.get(i));
+       }
     }
 
+    @Transactional
     public void envoyerInvitation(String nom)
     {    boolean exist = false;
         do{
@@ -161,11 +214,14 @@ public class Membre   {
                 System.out.println(envoyé_a);
                 MemberShip m = new MemberShip(this.getId(),envoyé_a.getId());
                 cx.save(m);
-                this.InvitationEnvoyé.add(m);
+                cx.save(this);
                 envoyé_a.InvitationRecu.add(m);
-                cx.closeConnexion();
-                System.out.println("liste des invitations recus");
+                this.InvitationEnvoye.add(m);
+                cx.getSession().update(envoyé_a);
+                System.out.println("liste des invitations recus pour " + envoyé_a.getNom());
                 envoyé_a.listeInvitationRecu();
+                System.out.println("liste des invitations envoyées par " + this.getNom());
+                System.out.println(this.getInvitationEnvoyé());
                 exist = true;
             }
            catch (NoResultException e)
@@ -176,4 +232,69 @@ public class Membre   {
         }
         while(exist==false);
     }
+  @Transactional
+   public  void accepterInvitation(Membre m )
+   {
+      this.getAmis().add(m);
+       System.out.println("liste d'amis \n");
+       this.getAmis();
+   }
+
+    @Transactional
+    public  void listePage()
+    {
+        for (int i = 0; i < this.getPages().size(); i++) {
+            System.out.println(getPages().get(i));
+        }
+    }
+    @Transactional
+    public boolean creePage (String nom , String  genre)
+    {
+        Connexion cx = new Connexion();
+        Page p = new Page();
+        Genre gr = Genre.valueOf(genre);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        p.setMembre(this);
+        p.setDate(formatter.format(date));
+        p.setNamePage(nom);
+        p.setGenrePage(gr);
+        pages.add(p);
+        cx.save(p);
+        cx.closeConnexion();
+        return false;
+    }
+
+    @Transactional
+    void listePagesAimées()
+    {
+        for (int i = 0; i < this.getPagesAimees().size(); i++) {
+            System.out.println(getPagesAimees().get(i));
+        }
+    }
+    @Transactional
+     public void aimerPage(String nom) {
+        boolean exist = false;
+        do {
+            Connexion cx = new Connexion();
+            try {
+                Query query = cx.getSession().createQuery("from Page where namePage = :nom");
+                query.setParameter("nom", nom);
+                Page p = (Page) query.getSingleResult();
+                System.out.println(p);
+                Aimes m = new Aimes(this.getId(), p.getId());
+                cx.save(m);
+                //cx.save(this);
+                cx.getSession().update(p);
+                this.getPagesAimees().add(m);
+
+            } catch (NoResultException e) {
+                System.out.println("page n'existe pas  " + nom);
+                System.out.println("vous devez donner une page existant");
+            }
+            cx.closeConnexion();
+
+        }
+        while (exist == false);
+    }
+
 }
