@@ -2,4 +2,5 @@
 git add . 
 git commit -m "n commit"
 git remote origin master url
-git push
+git push origin main --force
+
