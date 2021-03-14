@@ -20,6 +20,8 @@ public class Membre   {
     @OneToMany (mappedBy = "membreG",fetch = FetchType.LAZY)
     List<Rejoindre> groupeJoint = new ArrayList<>();
 
+    @OneToMany
+    List<Membre> ListeDemandeJointure = new ArrayList<>();
 
     @OneToMany(mappedBy="membre",fetch = FetchType.EAGER,cascade = CascadeType.ALL )
     private List<Page> pages = new ArrayList<Page>();
@@ -190,6 +192,14 @@ public class Membre   {
         InvitationRecu = invitationRecu;
     }
 
+    public List<Membre> getListeDemandeJointure() {
+        return ListeDemandeJointure;
+    }
+
+    public void setListeDemandeJointure(List<Membre> listeDemandeJointure) {
+        ListeDemandeJointure = listeDemandeJointure;
+    }
+
     public void listeInvitationRecu()
     {
         for (int i = 0; i < this.InvitationRecu.size(); i++) {
@@ -292,6 +302,7 @@ public class Membre   {
                 Connexion.save(m);
                 Connexion.getSession().update(p);
                 this.getPagesAimees().add(m);
+                exist = true;
 
             } catch (NoResultException e) {
                 System.out.println("page n'existe pas  " + nom);
@@ -316,5 +327,39 @@ public class Membre   {
         return false;
     }
 
+    public  void  rejoindreGroupe( String nom)
+    {
+        boolean exist = false;
+        do {
+            try {
+                Query query = Connexion.getSession().createQuery("from Groupe where nameGroupe = :nom");
+                query.setParameter("nom", nom);
+                Groupe p = (Groupe) query.getSingleResult();
+                if (p.getPrivacyGroupe() == Privacy.publique)
+                {
+                    Rejoindre m = new Rejoindre(this.getId(),p.getIdGroupe());
+                    Connexion.save(m);
+                    Connexion.getSession().update(p);
+                    this.getGroupeJoint().add(m);
+                    System.out.println("Vous etes un membre de ce groupe! ");
+                }
+                else {
+                    p.getMembre().ListeDemandeJointure.add(this);
+                    System.out.println("Ce groupe est privé, une demande est envoyée à l'administrateur! ");
+                }
+               this.getGroupeJoint();
 
+            } catch (NoResultException e) {
+                System.out.println("groupe n'existe pas  " + nom);
+                System.out.println("vous devez donner un groupe existant");
+            }
+            exist = true;
+        }
+        while (exist == false);
+    }
+
+     public  void accepterDemandeJointure()
+     {
+         System.out.println(this.getListeDemandeJointure());
+     }
 }

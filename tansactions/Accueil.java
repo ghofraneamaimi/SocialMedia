@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 public class Accueil {
     public static void main(String[] args) {
-   // BDAutoGeneration bd = new BDAutoGeneration();
+   BDAutoGeneration bd = new BDAutoGeneration();
         Scanner input = new Scanner(System.in);
         int choice;
         int ch;
@@ -102,8 +102,12 @@ public class Accueil {
                                     }
                                     break;
                                 case 6 :
-                                    System.out.printf("liste des groupes disponible \n ");
-                                    System.out.println(Groupe.listeGroupeDisponible().get(0).toString());
+                                    System.out.printf("liste des groupes disponibles \n ");
+                                    Groupe.listeGroupeDisponible();
+                                    Scanner sc8= new Scanner(System.in);
+                                    System.out.print("Nom du groupe à rejoindre ");
+                                    String p = sc8.nextLine();
+                                    mem.rejoindreGroupe(p);
 
                                     break;
 

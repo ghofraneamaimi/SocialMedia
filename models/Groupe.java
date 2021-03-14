@@ -94,12 +94,24 @@ public class Groupe {
         this.date = date;
     }
 
-    public static List<Groupe> listeGroupeDisponible()
+    @Override
+    public String toString() {
+        return "Groupe{" +
+                "membre=" + membre +
+                ", membreRejoint=" + membreRejoint +
+                ", idGroupe=" + idGroupe +
+                ", nameGroupe='" + nameGroupe + '\'' +
+                ", privacyGroupe=" + privacyGroupe +
+                ", date='" + date + '\'' +
+                '}';
+    }
+
+    public static void listeGroupeDisponible()
     {
         Query crit = Connexion.getSession().createQuery("from Groupe");
          List<Groupe> results = crit.getResultList();
-         return results;
-       // return Connexion.getSession().createQuery("from Groupe").getResultList().get(0);
-
+        for (int i = 0; i <results.size(); i++) {
+            System.out.println("nom"+ i + " " + results.get(i).getNameGroupe()+ " audiance " + results.get(i).getPrivacyGroupe() + "\n" );
+        }
     }
 }
