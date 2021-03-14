@@ -1,5 +1,6 @@
 package models;
 import database.Connexion;
+import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import javax.persistence.*;
 import javax.transaction.Transactional;
@@ -8,7 +9,17 @@ import java.util.*;
 
 @Entity
 public class Membre   {
+    @Transient
     Date d= new Date();
+
+    //liste de ses propres groupes(celui est l'admin)
+    @OneToMany
+    private List<Groupe> myGroupes = new ArrayList<>();
+
+    //liste des groupes qui le membre a rejoint
+    @OneToMany (mappedBy = "membreG",fetch = FetchType.LAZY)
+    List<Rejoindre> groupeJoint = new ArrayList<>();
+
 
     @OneToMany(mappedBy="membre",fetch = FetchType.EAGER,cascade = CascadeType.ALL )
     private List<Page> pages = new ArrayList<Page>();
@@ -17,7 +28,7 @@ public class Membre   {
     private List<Aimes> pagesAimees = new ArrayList<>();
 
     @OneToMany
-    public List<Membre> amis = new ArrayList<>();
+    public List<Membre> amis = new ArrayList<Membre>();
 
     //la liste des amitiés demandées à cet utilisateur
     @OneToMany(mappedBy = "sourceMembre",fetch = FetchType.LAZY)
@@ -149,6 +160,22 @@ public class Membre   {
         InvitationEnvoye = invitationEnvoye;
     }
 
+    public List<Groupe> getMyGroupes() {
+        return myGroupes;
+    }
+
+    public void setMyGroupes(List<Groupe> myGroupes) {
+        this.myGroupes = myGroupes;
+    }
+
+    public List<Rejoindre> getGroupeJoint() {
+        return groupeJoint;
+    }
+
+    public void setGroupeJoint(List<Rejoindre> groupeJoint) {
+        this.groupeJoint = groupeJoint;
+    }
+
     public Membre() { }
 
     public List<MemberShip> getInvitationEnvoye() {
@@ -163,15 +190,13 @@ public class Membre   {
         InvitationRecu = invitationRecu;
     }
 
-    @Transactional
     public void listeInvitationRecu()
     {
-        for (int i = 0; i < this.getInvitationRecu().size(); i++) {
-            System.out.println(this.getInvitationRecu().get(i));
+        for (int i = 0; i < this.InvitationRecu.size(); i++) {
+            System.out.println(this.InvitationRecu.get(i));
         }
     }
 
-    @Transactional
     public void listeInvitationEnvoye()
     {
        for (int i = 0; i < this.InvitationEnvoye.size(); i++) {
@@ -179,22 +204,21 @@ public class Membre   {
        }
     }
 
-    @Transactional
     public void envoyerInvitation(String nom)
     {    boolean exist = false;
         do{
-            Connexion cx = new Connexion();
             try {
-                Query query = cx.getSession().createQuery("from Membre where nom = :nom");
+                String q= "from Membre where nom =: nom";
+                Query query = Connexion.getSession().createQuery("from Membre where nom =: nom");
                 query.setParameter("nom", nom);
                 Membre envoye_a = (Membre) query.getSingleResult();
                 System.out.println(envoye_a);
                 MemberShip m = new MemberShip(this.getId(),envoye_a.getId());
-                cx.save(m);
-                cx.save(this);
+                Connexion.save(m);
+                Connexion.save(this);
                 envoye_a.InvitationRecu.add(m);
                 this.InvitationEnvoye.add(m);
-                cx.getSession().update(envoye_a);
+                Connexion.getSession().update(envoye_a);
                 System.out.println("liste des invitations recus pour " + envoye_a.getNom());
                 envoye_a.listeInvitationRecu();
                 System.out.println("liste des invitations envoyées par " + this.getNom());
@@ -210,25 +234,32 @@ public class Membre   {
         while(exist==false);
     }
 
-    @Transactional
-       public  void accepterInvitation(Membre m )
-       {
-          this.getAmis().add(m);
+    public  void listeAmies()
+    {
+        for (int i = 0; i < this.getAmis().size(); i++) {
+            System.out.println(getAmis().get(i));
+        }
+    }
+
+    public  void accepterInvitation(Membre m, int x  )
+    {
+           Transaction tx =Connexion.getSession().beginTransaction();
+           this.getAmis().add(m);
+           this.getInvitationRecu().remove(x);
            System.out.println("liste d'amis \n");
-           this.getAmis();
+           this.listeAmies();
+           tx.commit();
        }
 
-    @Transactional
     public  void listePage()
     {
         for (int i = 0; i < this.getPages().size(); i++) {
             System.out.println(getPages().get(i));
         }
     }
-    @Transactional
+
     public boolean creePage (String nom , String  genre)
     {
-        Connexion cx = new Connexion();
         Page p = new Page();
         Genre gr = Genre.valueOf(genre);
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
@@ -237,41 +268,53 @@ public class Membre   {
         p.setNamePage(nom);
         p.setGenrePage(gr);
         pages.add(p);
-        cx.save(p);
-        cx.closeConnexion();
+        Connexion.save(p);
         return false;
     }
 
-    @Transactional
     void listePagesAimees()
     {
         for (int i = 0; i < this.getPagesAimees().size(); i++) {
             System.out.println(getPagesAimees().get(i));
         }
     }
-    @Transactional
-     public void aimerPage(String nom) {
+
+     public void aimerPage(String nom)
+     {
         boolean exist = false;
         do {
-            Connexion cx = new Connexion();
             try {
-                Query query = cx.getSession().createQuery("from Page where namePage = :nom");
+                Query query = Connexion.getSession().createQuery("from Page where namePage = :nom");
                 query.setParameter("nom", nom);
                 Page p = (Page) query.getSingleResult();
                 System.out.println(p);
                 Aimes m = new Aimes(this.getId(), p.getId());
-                cx.save(m);
-                cx.getSession().update(p);
+                Connexion.save(m);
+                Connexion.getSession().update(p);
                 this.getPagesAimees().add(m);
 
             } catch (NoResultException e) {
                 System.out.println("page n'existe pas  " + nom);
                 System.out.println("vous devez donner une page existant");
             }
-            cx.closeConnexion();
 
         }
         while (exist == false);
     }
+
+    public boolean creeGroupe (String nom , String  privacy)
+    {
+        Groupe p = new Groupe();
+        Privacy gr = Privacy.valueOf(privacy);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        p.setMembre(this);
+        p.setDate(formatter.format(d));
+        p.setNameGroupe(nom);
+        p.setPrivacyGroupe(gr);
+        myGroupes.add(p);
+        Connexion.save(p);
+        return false;
+    }
+
 
 }

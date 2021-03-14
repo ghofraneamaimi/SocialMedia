@@ -1,11 +1,12 @@
 package tansactions;
 import database.*;
+import models.Groupe;
 import models.Membre;
 import java.util.Scanner;
 
 public class Accueil {
     public static void main(String[] args) {
-    BDAutoGeneration bd = new BDAutoGeneration();
+   // BDAutoGeneration bd = new BDAutoGeneration();
         Scanner input = new Scanner(System.in);
         int choice;
         int ch;
@@ -49,9 +50,9 @@ public class Accueil {
                             System.out.print("2: Accepter invitation\n");
                             System.out.print("3: Créer page\n");
                             System.out.print("4: Aimer page \n");
-                            System.out.print("5: Rejoindre groupe  \n");
-                            System.out.print("6: Publier Message  \n");
-                            System.out.print("7: Aimer page \n");
+                            System.out.print("5: Créer groupe  \n");
+                            System.out.print("6: Rejoindre groupe\n");
+                            System.out.print("7: Publier Message \n");
                             System.out.print("0: EXIT\n");
                             System.out.print("\nEnter Your Menu Choice: ");
                             ch = sc2.nextInt();
@@ -59,7 +60,7 @@ public class Accueil {
 
                                 case 1:
                                     Scanner sc3 = new Scanner(System.in);
-                                    System.out.print("Nom du personne");
+                                    System.out.print("Nom du personne ");
                                     String nom = sc3.nextLine();
                                     mem.envoyerInvitation(nom);
                                     break;
@@ -67,10 +68,11 @@ public class Accueil {
                                 case 2:
                                     Scanner sc6 = new Scanner(System.in);
                                     System.out.println("Liste des invitations: ");
-                                    mem.getInvitationRecu();
-                                    System.out.println("donner le nombre de l =  : ");
+                                    System.out.println(mem.getInvitationRecu());
+                                    System.out.println("indice =  : ");
                                     int x = sc6.nextInt();
-                                    mem.accepterInvitation(mem.getInvitationRecu().get(x).getTargetMembre());
+                                    System.out.println(mem.getInvitationRecu().get(x).getSourceMembre());
+                                    mem.accepterInvitation(mem.getInvitationRecu().get(x).getSourceMembre(),x);
                                     break;
                                 case 3:
                                     System.out.println("Choisir un genre pour la page a crée (sport, cuisine ,fashion, nouveautés) ");
@@ -89,6 +91,22 @@ public class Accueil {
                                     String n = sc5.nextLine();
                                     mem.aimerPage(n);
                                     break;
+                                case 5:
+                                    System.out.println("Choisir l'audiance pour le groupe a crée (prive / publique) ");
+                                    Scanner sc7 = new Scanner(System.in);
+                                    String privacy = sc7.nextLine();
+                                    System.out.print("Nom du groupe ");
+                                    String nomG = sc7.nextLine();
+                                    if (mem.creeGroupe(nomG, privacy)) {
+                                        System.out.println("votre groupe est crée avec succée");
+                                    }
+                                    break;
+                                case 6 :
+                                    System.out.printf("liste des groupes disponible \n ");
+                                    System.out.println(Groupe.listeGroupeDisponible().get(0).toString());
+
+                                    break;
+
                                 default:
                                     System.out.println("Veuillez respecter le menu!");
                             }
@@ -100,6 +118,8 @@ public class Accueil {
             }
 
         }while (choice !=0);
+        Connexion.closeConnexion();
     }
+
 }
 

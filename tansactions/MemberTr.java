@@ -13,22 +13,18 @@ public class MemberTr extends  Membre {
     }
 
     public boolean inscrire(String nom, String prenom, String email, String pwd, int age) {
-        Connexion cx = new Connexion();
         Membre user = new Membre(nom, prenom, email, pwd, age);
-        cx.save(user);
-        cx.closeConnexion();
+        Connexion.save(user);
         return false;
 
     }
 
 
     Membre authentifier(String mail, String pwd) {
-        Connexion cx = new Connexion();
 
-        Query query = cx.getSession().createQuery("from Membre where mail = :mail");
+        Query query = Connexion.getSession().createQuery("from Membre where mail = :mail");
         query.setParameter("mail", mail);
         Membre user = (Membre) query.getSingleResult();
-        cx.closeConnexion();
         System.out.println("hi");
         return user;
     }

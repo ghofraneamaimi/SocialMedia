@@ -30,18 +30,17 @@ public class MemberShip {
 
     public MemberShip(Long sourceMembre, Long targetMembre) {
         this.membershipId = new MemberShipID(sourceMembre,targetMembre);
-        Connexion cx = new Connexion();
+
         try{
-               this.sourceMembre= (Membre)cx.find(Membre.class ,sourceMembre);
-               this.targetMembre= (Membre)cx.find(Membre.class, targetMembre);
-               cx.getSession().update(this);
+               this.sourceMembre= (Membre)Connexion.find(Membre.class ,sourceMembre);
+               this.targetMembre= (Membre)Connexion.find(Membre.class, targetMembre);
             }  catch (NoResultException e)
             {
                 System.out.println("error");
             }
+    }
 
-        cx.closeConnexion();
-
+    public MemberShip() {
     }
 
     public Membre getSourceMembre() {

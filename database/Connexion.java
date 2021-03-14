@@ -1,9 +1,6 @@
 package database;
 
-import models.Aimes;
-import models.MemberShip;
-import models.Membre;
-import models.Page;
+import models.*;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -15,7 +12,7 @@ import java.util.Properties;
 public class Connexion {
     private static Session session = null ;
     private static SessionFactory sessionFactory = null ;
-     private Transaction tx = null;
+     private static Transaction tx = null;
     public  Connexion(){
         Properties prop= new Properties();
         prop.setProperty("hibernate.connection.url", "jdbc:postgresql://localhost:5432/SocialMedia");
@@ -30,31 +27,33 @@ public class Connexion {
         configuration.addAnnotatedClass(MemberShip.class);
         configuration.addAnnotatedClass(Page.class);
         configuration.addAnnotatedClass(Aimes.class);
+        configuration.addAnnotatedClass(Groupe.class);
+        configuration.addAnnotatedClass(Rejoindre.class);
         configuration.addProperties(prop);
         sessionFactory = configuration.buildSessionFactory();
         session = sessionFactory.openSession();
     }
 
-    public Session getSession() {
+    public  static Session getSession() {
+        if(session == null) {
+            new Connexion();
+        }
         return session;
     }
 
-    public void save(Object object)
+    public static void save(Object object)
     {
         tx = getSession().beginTransaction();
         getSession().save(object);
         tx.commit();
     }
 
-    public Object find(Class c,Object object){
+    public static Object find(Class c,Object object){
         return (Object) getSession().find(c,object);
     }
 
-    public void closeConnexion(){
+    public static void closeConnexion(){
         getSession().close();
         sessionFactory.close();
     }
-
-
-
 }

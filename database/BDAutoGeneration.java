@@ -32,7 +32,7 @@ public class BDAutoGeneration {
                     new StandardServiceRegistryBuilder()
                             .applySettings(settings)
                             .build());
-            for (Class clazz : new Class[] { Membre.class,MemberShip.class, Page.class, Aimes.class }) {
+            for (Class clazz : new Class[] { Membre.class,MemberShip.class, Page.class, Aimes.class, Rejoindre.class, Groupe.class }) {
                 metadata.addAnnotatedClass(clazz);
             }
 
